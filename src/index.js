@@ -1,49 +1,19 @@
+require('dotenv').config();
 const { ApolloServer } = require('apollo-server');
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
+const { getUserId } = require('./utils');
+const Query = require('./resolvers/Query');
+const Mutation = require('./resolvers/Mutation');
+const User = require('./resolvers/User');
+const Link = require('./resolvers/Link');
 
 const resolvers = {
-	Query: {
-		info: () => 'This is the API of a Hackernews Clone',
-		feed: async (parent, args, context) => await context.prisma.link.findMany(),
-		link: async (_, args, context) => {
-			return await context.prisma.link.findUnique({
-				where: { id: parseInt(args.id) }
-			});
-		}
-	},
-	Mutation: {
-		post: (_, args, context) => {
-			const newLink = context.prisma.link.create({
-				data: {
-					url: args.url,
-					description: args.description
-				}
-			});
-			return newLink;
-		},
-		updateLink: async (_, args, context) => {
-			const { description, url } = args;
-			return await context.prisma.link.update({
-				where: { id: parseInt(args.id) },
-				data: { description, url }
-			});
-		},
-		deleteLink: async (_, args, context) => {
-			const id = parseInt(args.id);
-			const link = await context.prisma.link.findUnique({
-				where: { id }
-			});
-			await context.prisma.link.delete({ where: { id } });
-			return link;
-		}
-	},
-	Link: {
-		id: parent => parent.id,
-		description: parent => parent.description,
-		url: parent => parent.url
-	}
+	Query,
+	Mutation,
+	Link,
+	User
 };
 
 const prisma = new PrismaClient();
@@ -51,9 +21,11 @@ const prisma = new PrismaClient();
 const server = new ApolloServer({
 	typeDefs: fs.readFileSync(path.join(__dirname, 'schema.graphql'), 'utf8'),
 	resolvers,
-	context: {
-		prisma
-	}
+	context: ({ req }) => ({
+		...req,
+		prisma,
+		userId: req && req.headers.authorization ? getUserId(req) : null
+	})
 });
 
 server.listen().then(({ url }) => console.log(`Server running on ${url}`));
