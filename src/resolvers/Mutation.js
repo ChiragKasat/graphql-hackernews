@@ -1,6 +1,5 @@
 const bcrypt = require('bcryptjs');
 const { sign } = require('jsonwebtoken');
-const { getUserId } = require('../utils');
 
 const signup = async (parent, args, context, info) => {
 	const password = await bcrypt.hash(args.password, 10);
@@ -9,7 +8,9 @@ const signup = async (parent, args, context, info) => {
 		data: { ...args, password }
 	});
 
-	const token = sign({ userId: user.id }, process.env.APP_SECRET);
+	const token = sign({ userId: user.id }, process.env.APP_SECRET, {
+		expiresIn: '7d'
+	});
 
 	return {
 		token,
@@ -32,7 +33,9 @@ const login = async (parent, args, context, info) => {
 		throw new Error('Invalid password');
 	}
 
-	const token = sign({ userId: user.id }, process.env.APP_SECRET);
+	const token = sign({ userId: user.id }, process.env.APP_SECRET, {
+		expiresIn: '7d'
+	});
 
 	return {
 		token,
