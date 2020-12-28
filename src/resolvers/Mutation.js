@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { sign } = require('jsonwebtoken');
+const { getUserId } = require('../utils');
 
 const signup = async (parent, args, context, info) => {
 	const password = await bcrypt.hash(args.password, 10);
@@ -54,7 +55,41 @@ const post = async (parent, args, context) => {
 				postedBy: { connect: { id: userId } }
 			}
 		});
+
+		context.pubsub.publish('NEW_LINK', newLink);
+
 		return newLink;
+	} catch (err) {
+		console.error(err);
+	}
+};
+
+const vote = async (parent, args, context) => {
+	try {
+		const { userId } = context;
+
+		if (!userId) {
+			throw new Error('Not Authorized');
+		}
+
+		const vote = await context.prisma.vote.findUnique({
+			where: { linkId_userId: { linkId: parseInt(args.linkId), userId } }
+		});
+
+		if (Boolean(vote)) {
+			throw new Error(`Already voted for link: ${args.linkId}`);
+		}
+
+		const newVote = await context.prisma.vote.create({
+			data: {
+				link: { connect: { id: parseInt(args.linkId) } },
+				user: { connect: { id: userId } }
+			}
+		});
+
+		context.pubsub.publish('NEW_VOTE', newVote);
+
+		return newVote;
 	} catch (err) {
 		console.error(err);
 	}
@@ -79,5 +114,6 @@ const post = async (parent, args, context) => {
 module.exports = {
 	signup,
 	login,
-	post
+	post,
+	vote
 };

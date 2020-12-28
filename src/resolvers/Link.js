@@ -4,8 +4,15 @@ const postedBy = async (parent, args, context) => {
 		.postedBy();
 };
 
+const votes = async (parent, args, context) => {
+	return context.prisma.link.findUnique({ where: { id: parent.id } }).votes();
+};
+
 // id: parent => parent.id,
 // 		description: parent => parent.description,
 // 		url: parent => parent.url
 
-module.exports = { postedBy };
+module.exports = {
+	postedBy,
+	votes
+};
