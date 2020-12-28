@@ -23,6 +23,7 @@ type Link {
 	description: String!
 	url: String!
 	postedBy: User
+	createdAt: DateTime
 	votes: [Vote!]!
 }
 
@@ -59,3 +60,5 @@ type Feed {
 	links: [Link!]!
 	count: Int!
 }
+
+scalar DateTime
