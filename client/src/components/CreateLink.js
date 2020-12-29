@@ -3,12 +3,11 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router';
 
 const CREATE_LINK_MUTATION = gql`
-	mutation {
-		post(url: $url, description: $description) {
+	mutation PostMutation($description: String!, $url: String!) {
+		post(description: $description, url: $url) {
 			id
-			createdAt
-			description
 			url
+			description
 		}
 	}
 `;

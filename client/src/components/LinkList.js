@@ -18,8 +18,6 @@ const FEED_QUERY = gql`
 const LinkList = () => {
 	const { data, loading, error } = useQuery(FEED_QUERY);
 
-	console.log(data);
-
 	if (loading) return <p>loading</p>;
 	if (error) return <p>error: {error}</p>;
 	return (
